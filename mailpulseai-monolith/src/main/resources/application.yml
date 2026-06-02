@@ -31,6 +31,11 @@ spring:
         keep-alive: 10s
       thread-name-prefix: async-event-
 
+  # AI API key (used by AIEmailProcessorService as primary Groq key)
+  ai:
+    openai:
+      api-key: ${GROQ_API_KEY}
+
 # Gmail OAuth Credentials
 google:
   client-id: ${GOOGLE_CLIENT_ID}
@@ -42,7 +47,7 @@ gmail:
   polling:
     interval-ms: 60000
 
-# Twilio Credentials
+# Twilio / WhatsApp Credentials
 twilio:
   account:
     sid: ${TWILIO_ACCOUNT_SID}
@@ -50,12 +55,6 @@ twilio:
     token: ${TWILIO_AUTH_TOKEN}
   from: ${TWILIO_WHATSAPP_FROM}
   to: ${WHATSAPP_TO}
-
-# AI Settings
-spring:
-  ai:
-    openai:
-      api-key: ${GROQ_API_KEY}
 
 logging:
   level:

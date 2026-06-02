@@ -10,10 +10,10 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 import java.util.Properties;
 
 /**
@@ -79,7 +79,7 @@ public class OutboundMailService {
 
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             mimeMessage.writeTo(buffer);
-            String encodedEmail = Base64.encodeBase64URLSafeString(buffer.toByteArray());
+            String encodedEmail = Base64.getUrlEncoder().withoutPadding().encodeToString(buffer.toByteArray());
 
             Message message = new Message();
             message.setRaw(encodedEmail);

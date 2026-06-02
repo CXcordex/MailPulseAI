@@ -56,7 +56,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .event-item{display:flex;gap:8px;align-items:flex-start;padding:6px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.05)}
 .event-item .etime{color:var(--muted);white-space:nowrap;min-width:55px}
 .event-item .etag{padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700}
-.etag.kafka{background:rgba(66,165,245,0.2);color:#42a5f5}
+.etag.event{background:rgba(66,165,245,0.2);color:#42a5f5}
 .etag.ai{background:rgba(124,179,66,0.2);color:#7cb342}
 .etag.wa{background:rgba(102,187,106,0.2);color:#66bb6a}
 .donut-container{display:flex;align-items:center;gap:24px;justify-content:center}
@@ -77,9 +77,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <body>
 
 <div class="header">
-  <h1><span class="dot"></span> MailPulseAI AI <span class="subtitle">Spring Boot · Kafka · Groq LLM</span></h1>
+  <h1><span class="dot"></span> MailPulseAI <span class="subtitle">Spring Boot · Spring Events · Groq LLM</span></h1>
   <div class="status-pills">
-    <div class="pill">Kafka <span class="pdot green"></span></div>
+    <div class="pill">Events <span class="pdot green"></span></div>
     <div class="pill">AI <span class="pdot amber"></span></div>
     <div class="pill">WhatsApp <span class="pdot blue"></span></div>
   </div>
@@ -120,7 +120,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <div class="bottom-grid">
   <div class="card">
-    <h2>Kafka Event Stream — Live</h2>
+    <h2>Event Stream — Live</h2>
     <div class="event-list" id="event-log"></div>
   </div>
   <div class="card">
@@ -198,7 +198,7 @@ function showDetail(i) {
     const emoji = e.category==='URGENT'?'🔴':e.category==='IMPORTANT'?'🟡':'🟢';
     document.getElementById('wa-preview').innerHTML = `${emoji} <b>MailPulseAI AI — ${e.category}</b><br>From: ${esc(e.senderName)}<br>Subject: ${esc(e.subject)}<br><br>${esc(e.summary||'')}<br><br>Reply: YES / EDIT: &lt;text&gt; / IGNORE`;
   }
-  addEvent(`Selected email: ${e.subject}`, 'ai');
+  addEvent(`Selected email: ${e.subject}`, 'event');
 }
 
 // Filters
@@ -252,8 +252,8 @@ function formatTime(t){if(!t)return '';try{const d=new Date(t);return d.toLocale
 // Init
 fetchStats();
 fetchEmails('');
-addEvent('Dashboard connected to API Gateway', 'kafka');
-setInterval(()=>{fetchStats();fetchEmails(currentFilter);addEvent('Polling API for updates...','kafka');}, 30000);
+addEvent('Dashboard connected — Spring Events active', 'event');
+setInterval(()=>{fetchStats();fetchEmails(currentFilter);addEvent('Polling API for updates...','ai');}, 30000);
 </script>
 </body>
 </html>

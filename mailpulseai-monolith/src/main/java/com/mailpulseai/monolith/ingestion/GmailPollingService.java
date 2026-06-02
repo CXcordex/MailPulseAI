@@ -62,8 +62,8 @@ public class GmailPollingService {
             int newCount = 0;
             for (Message msg : messages) {
                 try {
-                    // Check if we've already processed this email
-                    if (emailRepository.existsById(msg.getId())) {
+                    // Check if we've already processed this email (use gmailMessageId, not JPA UUID)
+                    if (emailRepository.existsByGmailMessageId(msg.getId())) {
                         continue;
                     }
 

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +26,8 @@ public class EmailProcessingListener {
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
 
-    private static int emailCounter = 0;
+    // AtomicInteger so concurrent async threads can safely update the counter
+    private static final AtomicInteger emailCounter = new AtomicInteger(0);
 
     @Async
     @EventListener
@@ -94,10 +96,10 @@ public class EmailProcessingListener {
         } catch (Exception e) {
             log.error("Failed to process emailId={}: {}", emailId, e.getMessage(), e);
         } finally {
-            emailCounter++;
+            int count = emailCounter.incrementAndGet();
             try {
-                if (emailCounter % 5 == 0) {
-                    log.info("Processed 5 emails. Cooldown of 15 seconds to respect limits...");
+                if (count % 5 == 0) {
+                    log.info("Processed 5 emails. Cooldown of 15 seconds to respect rate limits...");
                     Thread.sleep(15000);
                 } else {
                     Thread.sleep(2000);
