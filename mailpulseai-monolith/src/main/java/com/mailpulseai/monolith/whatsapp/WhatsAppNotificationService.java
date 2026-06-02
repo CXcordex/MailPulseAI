@@ -24,8 +24,12 @@ public class WhatsAppNotificationService {
 
     @PostConstruct
     public void init() {
-        Twilio.init(accountSid, authToken);
-        log.info("Twilio WhatsApp service initialised. from={} to={}", fromNumber, toNumber);
+        try {
+            Twilio.init(accountSid, authToken);
+            log.info("Twilio WhatsApp service initialised. from={} to={}", fromNumber, toNumber);
+        } catch (Exception e) {
+            log.error("Failed to initialise Twilio SDK: {}. WhatsApp notifications will be disabled until credentials are fixed.", e.getMessage());
+        }
     }
 
     public String getToNumber() {
