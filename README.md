@@ -103,10 +103,11 @@ Deploying this monolithic application to the cloud is incredibly simple. We reco
 1. Click **New** → **Web Service** on Render.
 2. Select **"Build and deploy from a Git repository"** and connect your GitHub repo.
 3. Configure the service:
-   - **Runtime:** Java
-   - **Build Command:** `cd mailpulseai-monolith && mvn clean package -DskipTests`
-   - **Start Command:** `java -jar mailpulseai-monolith/target/mailpulseai-monolith-1.0.0.jar`
+   - **Language:** `Docker`
+   - **Root Directory:** `mailpulseai-monolith`
    - **Instance Type:** Free
+
+*(By setting the Root Directory, Render will automatically find and build the `Dockerfile` inside that folder).*
 
 ### Step 3: Configure Environment Variables
 In the Render Web Service settings, go to **Environment Variables** and add everything from your `.env` file. 
