@@ -8,7 +8,7 @@ Run ONCE to get your refresh token, then add it to .env as GOOGLE_REFRESH_TOKEN.
 The refresh token never expires unless you revoke it in Google Account settings.
 
 BEFORE running:
-  1. In Google Cloud Console → Credentials → your OAuth client
+  1. In Google Cloud Console -> Credentials -> your OAuth client
   2. Add this redirect URI:  http://localhost:8090/
   3. Click Save, wait 1 minute
 
@@ -19,9 +19,12 @@ Usage:
   python scripts/get_refresh_token.py
 """
 
-import json
-import os
 import sys
+import os
+
+# Force UTF-8 output on Windows to avoid emoji encoding errors
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 try:
     from google_auth_oauthlib.flow import InstalledAppFlow
@@ -44,7 +47,7 @@ if not CLIENT_ID or not CLIENT_SECRET:
     sys.exit(1)
 
 # Using "web" type to match the OAuth client created in Google Cloud Console.
-# The redirect URI MUST be added in Google Cloud Console → Credentials → your client.
+# The redirect URI MUST be added in Google Cloud Console -> Credentials -> your client.
 client_config = {
     "web": {
         "client_id": CLIENT_ID,
@@ -58,6 +61,9 @@ client_config = {
 flow = InstalledAppFlow.from_client_config(client_config, scopes=SCOPES)
 credentials = flow.run_local_server(port=8090, access_type="offline", prompt="consent")
 
-print("\n✅  OAuth flow complete!")
-print(f"\nGOOGLE_REFRESH_TOKEN={credentials.refresh_token}")
-print("\nAdd this to your .env file.")
+print("")
+print("SUCCESS: OAuth flow complete!")
+print("")
+print("GOOGLE_REFRESH_TOKEN=" + credentials.refresh_token)
+print("")
+print("Copy the token above and paste it into your .env file.")

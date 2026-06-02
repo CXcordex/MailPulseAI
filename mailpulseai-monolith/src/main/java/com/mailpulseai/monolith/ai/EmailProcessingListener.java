@@ -98,11 +98,11 @@ public class EmailProcessingListener {
         } finally {
             int count = emailCounter.incrementAndGet();
             try {
-                if (count % 5 == 0) {
-                    log.info("Processed 5 emails. Cooldown of 15 seconds to respect rate limits...");
-                    Thread.sleep(15000);
+                if (count % 3 == 0) {
+                    log.info("Processed 3 emails. Cooldown of 20 seconds to respect Groq rate limits...");
+                    Thread.sleep(20000);
                 } else {
-                    Thread.sleep(2000);
+                    Thread.sleep(5000);
                 }
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
