@@ -5,9 +5,15 @@
 </div>
 
 ---
-
-![Dashboard Preview](assets/dashboard.png)
-
+<div align="center">
+  <img src="./assets/dashboard.png" alt="MailPulseAI Dashboard" width="100%" />
+  <br>
+  <em>Live Analytics Dashboard displaying Inbox & AI Processing</em>
+  <br><br>
+  <img src="./assets/whatsapp-preview.jpg" alt="MailPulseAI WhatsApp Alerts" width="350" />
+  <br>
+  <em>WhatsApp Notification with One-Tap Approvals</em>
+</div>
 ## ✨ Features
 
 | Feature | Description |
