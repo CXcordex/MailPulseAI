@@ -1,263 +1,136 @@
-# MailPulseAI 📬🤖
-
-> **An AI-powered email assistant that classifies, summarises, and drafts replies to your inbox — then delivers smart WhatsApp notifications so you can approve or customise replies without ever opening your email client.**
-
-![Dashboard Preview](assets/dashboard.png)
+<div align="center">
+  <h1>📬 MailPulseAI</h1>
+  <p><b>Your Personal AI-Powered Email & WhatsApp Assistant</b></p>
+  <p><i>Classifies, summarises, and drafts replies to your inbox — then delivers smart WhatsApp notifications so you can approve or customise replies without ever opening your email client.</i></p>
+</div>
 
 ---
+
+![Dashboard Preview](assets/dashboard.png)
 
 ## ✨ Features
 
 | Feature | Description |
-|---|---|
-| 📥 **Gmail Polling** | Fetches the last 24 hours of inbox messages every 60 seconds via Gmail OAuth |
-| 🤖 **AI Classification** | Classifies every email into: `URGENT`, `IMPORTANT`, `CLIENT`, `NEWSLETTER`, `SPAM` |
-| 📝 **AI Summarisation** | Generates a 2–3 bullet point summary for each email |
-| ✍️ **AI Draft Reply** | Drafts a professional reply automatically (skipped for SPAM/NEWSLETTER) |
-| 💬 **WhatsApp Alerts** | Sends a formatted WhatsApp notification for important/urgent/client emails via Twilio |
-| 👍 **One-tap Approval** | Reply `YES` to send the AI draft, `EDIT: <text>` for a custom reply, or `IGNORE` to skip |
-| 📊 **Live Dashboard** | Built-in web UI showing the inbox, AI analysis, category donut chart, and event log |
-| 🔄 **Multi-provider AI Fallback** | Automatically rotates across Groq → NVIDIA NIM → OpenRouter → Gemini on rate limits |
+| :--- | :--- |
+| 📥 **Smart Gmail Polling** | Fetches unread emails from the last 24 hours every 60 seconds securely via OAuth 2.0. |
+| 🤖 **AI Classification** | Auto-categorizes emails into: `URGENT`, `IMPORTANT`, `CLIENT`, `NEWSLETTER`, `SPAM`. |
+| 📝 **Action-Oriented Summaries** | Generates 2–3 concise bullet points focusing on tasks, deadlines, and questions. |
+| ✍️ **Auto-Drafted Replies** | Drafts a professional, context-aware reply automatically (intelligently skips SPAM/NEWSLETTERS). |
+| 💬 **WhatsApp Alerts (Twilio)** | Sends formatted WhatsApp notifications for high-priority emails directly to your phone. |
+| 👍 **One-Tap WhatsApp Approvals** | Reply `YES` to send the AI draft, `EDIT: <text>` for a custom reply, or `IGNORE` to skip. |
+| 📊 **Live Analytics Dashboard** | Beautiful local web UI showing the inbox, category donut chart, and real-time processing logs. |
+| 🔄 **Multi-Provider AI Fallback** | Seamlessly rotates between Groq → NVIDIA NIM → OpenRouter → Gemini when rate limits are hit. |
+| ⏳ **Intelligent Rate Limiting** | Built-in smart cooldowns (e.g., pausing every 3 emails) to respect strict free-tier API limits during bulk ingestion. |
 
 ---
 
-## 🏗️ Architecture — Modular Monolith
+## 🏗️ Architecture: Event-Driven Modular Monolith
 
-This project is a **single deployable Spring Boot application** (monolith) with internally modular packages. All inter-module communication is via **Spring `ApplicationEvent`** — no Kafka, no Redis, no Eureka required.
+This project is built as a **single deployable Spring Boot application** with highly decoupled internal modules. It relies heavily on **Spring `ApplicationEvent`** for asynchronous messaging, eliminating the overhead of Kafka, Redis, or Eureka while maintaining a scalable event-driven architecture.
 
-```
-Gmail API
-    │
-    ▼
-GmailPollingService          (ingestion module — polls every 60s)
-    │ publishes NewEmailEvent
-    ▼
-EmailProcessingListener      (ai module — @Async, processes with AI)
-    │  ├─ AIEmailProcessorService.classify()
-    │  ├─ AIEmailProcessorService.summarise()
-    │  └─ AIEmailProcessorService.draftReply()
-    │ saves to PostgreSQL → publishes EmailProcessedEvent
-    ▼
-EmailProcessedListener       (whatsapp module — @Async)
-    │
-    ▼
-WhatsAppNotificationService  → Twilio API → Your WhatsApp
-    │
-    │ (user replies YES / EDIT / IGNORE via WhatsApp)
-    ▼
-WhatsAppWebhookController    → publishes ReplyApprovedEvent
-    │
-    ▼
-ReplyApprovedListener        (outbound module — @Async)
-    │
-    ▼
-OutboundMailService          → Gmail API (sends the reply)
+```mermaid
+graph TD
+    A[Gmail API] -->|Polls every 60s| B(GmailPollingService)
+    B -->|NewEmailEvent| C(EmailProcessingListener)
+    C -->|AI Analysis via Groq/Gemini| D[(PostgreSQL)]
+    D -->|EmailProcessedEvent| E(EmailProcessedListener)
+    E -->|Twilio API| F[Your WhatsApp]
+    F -->|YES / EDIT / IGNORE| G(WhatsAppWebhookController)
+    G -->|ReplyApprovedEvent| H(ReplyApprovedListener)
+    H -->|Sends Email| A
 ```
 
-### Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | Spring Boot 3.3.5 (Java 21) |
-| Database | PostgreSQL (via Spring Data JPA / Hibernate) |
-| AI | Groq (llama-3.1-8b-instant) with fallback to NVIDIA NIM, OpenRouter, Google Gemini |
-| Messaging | Gmail API v1 (Google OAuth 2.0 refresh token) |
-| Notifications | Twilio WhatsApp API |
-| Frontend | Vanilla HTML/CSS/JS (served as a Spring Boot static resource) |
-| Deployment | Docker + Docker Compose / Render / AWS ECS |
+### 🛠️ Tech Stack
+- **Framework:** Spring Boot 3.3.5 (Java 21)
+- **Database:** PostgreSQL (Spring Data JPA / Hibernate)
+- **AI Providers:** Groq (`llama-3.1-8b-instant`), Google Gemini, NVIDIA NIM, OpenRouter
+- **Messaging API:** Google Gmail API v1 (OAuth 2.0)
+- **Notifications:** Twilio WhatsApp API
+- **Frontend:** Vanilla HTML/CSS/JS (served as static resources)
+- **Deployment:** Docker & Docker Compose
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Local Development)
 
 ### Prerequisites
-
-- Java 21
-- Maven 3.9+
+- Java 21 & Maven 3.9+
 - Docker & Docker Compose
-- A Gmail account with OAuth credentials
-- A Twilio account (free sandbox works)
-- A free [Groq API key](https://console.groq.com)
+- Twilio Account (Free Sandbox works)
+- Google Cloud Console Account (for Gmail API credentials)
+- [Groq API Key](https://console.groq.com) (Free)
 
-### 1. Clone the repository
-
+### 1. Clone & Configure
 ```bash
 git clone https://github.com/CXcordex/MailPulseAI.git
 cd MailPulseAI
-```
-
-### 2. Set up environment variables
-
-```bash
 cp .env.example .env
 ```
+Fill in your credentials in `.env`.
 
-Edit `.env` and fill in your credentials:
-
-```env
-GROQ_API_KEY=gsk_...                        # Groq API key (primary AI)
-GOOGLE_CLIENT_ID=...                         # Google OAuth client ID
-GOOGLE_CLIENT_SECRET=...                     # Google OAuth client secret
-GOOGLE_REFRESH_TOKEN=...                     # Gmail refresh token (see below)
-TWILIO_ACCOUNT_SID=AC...                     # Twilio account SID
-TWILIO_AUTH_TOKEN=...                        # Twilio auth token
-TWILIO_WHATSAPP_FROM=whatsapp:+14155238886   # Twilio sandbox number
-WHATSAPP_TO=whatsapp:+91XXXXXXXXXX           # Your WhatsApp number
-```
-
-### 3. Get your Gmail Refresh Token
-
+### 2. Generate Gmail Refresh Token
+Run the included Python script to perform the one-time Google OAuth flow:
 ```bash
 pip install google-auth-oauthlib
 python scripts/get_refresh_token.py
 ```
+Paste the generated `GOOGLE_REFRESH_TOKEN` into your `.env` file.
 
-Follow the OAuth browser flow. Paste the resulting refresh token into `.env`.
-
-### 4. Run with Docker Compose
-
+### 3. Start the Application
 ```bash
-docker-compose up --build
+docker-compose up --build -d
 ```
+Your dashboard is now live at: **http://localhost:8080** 🎉
 
-This starts:
-- **PostgreSQL** on port 5432
-- **MailPulseAI app** on port 8080
-
-Open the dashboard: **http://localhost:8080**
-
-### 5. Configure Twilio Webhook
-
-In your [Twilio Console](https://console.twilio.com) → WhatsApp Sandbox → "When a message comes in":
-
-```
-https://YOUR_DOMAIN/webhook/whatsapp
-```
-
-> For local development, use [ngrok](https://ngrok.com):
-> ```bash
-> ngrok http 8080
-> # Then set the ngrok HTTPS URL as the Twilio webhook
-> ```
+### 4. Configure Twilio Webhook (For WhatsApp Replies)
+In your Twilio Console → WhatsApp Sandbox → "When a message comes in":
+Set the webhook URL to: `https://YOUR_DOMAIN/webhook/whatsapp`
+*(For local testing, use [ngrok](https://ngrok.com) to expose port 8080).*
 
 ---
 
-## 📡 API Endpoints
+## ☁️ Deployment Guide (Render - Free Tier)
 
-The dashboard calls these REST endpoints (all prefixed `/api/ai/emails`):
+Deploying this monolithic application to the cloud is incredibly simple. We recommend **Render** for a free and easy hosting solution.
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/ai/emails` | Paginated email list (newest first) |
-| `GET` | `/api/ai/emails?category=URGENT` | Filter by category |
-| `GET` | `/api/ai/emails/{id}` | Single email with full AI analysis |
-| `GET` | `/api/ai/emails/stats` | Category counts for dashboard chart |
-| `PATCH` | `/api/ai/emails/{id}/reply` | Edit the AI draft reply |
+### Step 1: Prepare the Database
+1. Create an account on [Render.com](https://render.com).
+2. Click **New** → **PostgreSQL**.
+3. Name it `mailpulseai-db`, select the **Free** instance type, and click **Create**.
+4. Once created, copy the **Internal Database URL** (e.g., `postgres://user:pass@host/dbname`).
 
-WhatsApp webhook:
+### Step 2: Deploy the Web Application
+1. Click **New** → **Web Service** on Render.
+2. Select **"Build and deploy from a Git repository"** and connect your GitHub repo.
+3. Configure the service:
+   - **Runtime:** Java
+   - **Build Command:** `cd mailpulseai-monolith && mvn clean package -DskipTests`
+   - **Start Command:** `java -jar mailpulseai-monolith/target/mailpulseai-monolith-1.0.0.jar`
+   - **Instance Type:** Free
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/webhook/whatsapp` | Receives Twilio WhatsApp replies |
+### Step 3: Configure Environment Variables
+In the Render Web Service settings, go to **Environment Variables** and add everything from your `.env` file. 
 
----
+**Crucially, add this database connection variable:**
+- Key: `SPRING_DATASOURCE_URL`
+- Value: `jdbc:<paste_your_render_internal_database_url_here>`
+*(Ensure you replace `postgres://` with `postgresql://` in the JDBC URL).*
 
-## 🤖 AI Provider Fallback Chain
-
-When the primary Groq key hits its rate limit, the system automatically tries:
-
-1. **Groq** (`llama-3.1-8b-instant`) — primary from `GROQ_API_KEY`
-2. **Groq** — secondary from `FALLBACK_GROQ_KEY_1` (optional)
-3. **NVIDIA NIM** — from `NVIDIA_API_KEY_1` (optional)
-4. **NVIDIA NIM** — from `NVIDIA_API_KEY_2` (optional)
-5. **Groq** — tertiary from `FALLBACK_GROQ_KEY_2` (optional)
-6. **OpenRouter** — from `OPENROUTER_API_KEY` (optional)
-7. **Google Gemini Flash** — from `GEMINI_API_KEY` (optional)
-
-All fallback keys are optional. Add them to `.env` for extra resilience.
+### Step 4: Deploy & Update Twilio
+1. Click **Deploy**. Render will build and launch your application.
+2. Once live, copy your `.onrender.com` URL.
+3. Go back to your Twilio WhatsApp Sandbox and update the webhook URL to: `https://your-app.onrender.com/webhook/whatsapp`.
 
 ---
 
-## 📁 Project Structure
-
-```
-MailPulseAI/
-├── mailpulseai-monolith/           # Single deployable Spring Boot app
-│   ├── Dockerfile                  # Multi-stage Docker build (JDK build → JRE runtime)
-│   ├── pom.xml
-│   └── src/main/
-│       ├── java/com/mailpulseai/monolith/
-│       │   ├── MailPulseAIMonolithApplication.java   # Entry point
-│       │   ├── ai/                 # AI classification, summarisation, draft reply
-│       │   │   ├── AIEmailProcessorService.java      # Multi-provider AI client
-│       │   │   ├── EmailDashboardController.java     # REST API for dashboard
-│       │   │   ├── EmailProcessingListener.java      # Async NewEmailEvent handler
-│       │   │   └── EmailProcessedEventService.java   # Persists AI results to DB
-│       │   ├── config/
-│       │   │   └── GmailConfig.java                  # Gmail OAuth client bean
-│       │   ├── entity/
-│       │   │   ├── EmailEntity.java                  # Raw ingested email (emails table)
-│       │   │   └── ProcessedEmailEntity.java         # AI result (processed_emails table)
-│       │   ├── event/              # Spring ApplicationEvent classes
-│       │   │   ├── NewEmailEvent.java
-│       │   │   ├── EmailProcessedEvent.java
-│       │   │   └── ReplyApprovedEvent.java
-│       │   ├── ingestion/
-│       │   │   ├── GmailPollingService.java           # Scheduled Gmail inbox poller
-│       │   │   └── EmailParserUtil.java               # MIME/Base64 email parser
-│       │   ├── outbound/
-│       │   │   ├── OutboundMailService.java           # Sends approved replies via Gmail
-│       │   │   └── ReplyApprovedListener.java         # Async ReplyApprovedEvent handler
-│       │   ├── repository/
-│       │   │   ├── EmailRepository.java
-│       │   │   └── ProcessedEmailRepository.java
-│       │   └── whatsapp/
-│       │       ├── WhatsAppNotificationService.java  # Twilio message sender
-│       │       ├── WhatsAppWebhookController.java    # Handles YES/EDIT/IGNORE replies
-│       │       └── EmailProcessedListener.java       # Async EmailProcessedEvent handler
-│       └── resources/
-│           ├── application.yml                       # All app configuration
-│           └── static/index.html                     # Built-in dashboard UI
-├── scripts/
-│   └── get_refresh_token.py        # Helper to get Gmail refresh token
-├── docker-compose.yml              # Postgres + App
-├── .env.example                    # Environment variable template
-└── README.md
-```
+## 🔒 Security & Privacy
+- **No Passwords Stored:** Uses Google OAuth 2.0 Refresh Tokens.
+- **Webhook Authentication:** The application verifies incoming Twilio requests to ensure only your designated `WHATSAPP_TO` number can trigger email sends.
+- **Local Database:** All AI analyses and emails are stored locally in your own Postgres database instance, not on third-party servers.
 
 ---
 
-## ☁️ Deployment on Render (Free Tier)
-
-1. Push your code to GitHub (already done — this repo!)
-2. Create a **new Web Service** on [Render](https://render.com)
-3. Connect this GitHub repository
-4. Set **Build Command**: `cd mailpulseai-monolith && mvn clean package -DskipTests`
-5. Set **Start Command**: `java -jar mailpulseai-monolith/target/mailpulseai-monolith-1.0.0.jar`
-6. Add a **PostgreSQL** database on Render and copy the internal connection string
-7. Add all environment variables from `.env.example` in the Render dashboard
-8. Set `SPRING_DATASOURCE_URL` to the Render Postgres internal URL
-
-Or use the included Dockerfile for Docker-based deployment on Railway, Fly.io, or AWS ECS.
-
----
-
-## 🔒 Security Notes
-
-- `.env` is **git-ignored** — never commit real credentials
-- The WhatsApp webhook validates the sender number against `WHATSAPP_TO` — only your number can trigger email sends
-- Gmail OAuth uses a refresh token — no passwords are stored
-- Processed email content is stored in PostgreSQL — ensure your DB is not publicly accessible
-
----
-
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-## 👤 Author
-
-**Sayan Roy Chowdhury** — Final-year IT student & AI engineer  
-GitHub: [@CXcordex](https://github.com/CXcordex)
+<div align="center">
+  <p>Built with ❤️ by <a href="https://github.com/CXcordex">Sayan Roy Chowdhury</a></p>
+  <p><i>Final-year IT Student & AI Engineer</i></p>
+</div>
