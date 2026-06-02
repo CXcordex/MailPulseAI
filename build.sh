@@ -1,28 +1,17 @@
 #!/usr/bin/env bash
-# build.sh — builds all MailPulseAI AI microservices locally (without Docker)
+# build.sh — builds the MailPulseAI monolithic application locally (without Docker)
 # Run from the project root: ./build.sh
 # For Docker builds, use: docker-compose up --build -d
 set -e
 
-SERVICES=(
-  "eureka-server"
-  "api-gateway"
-  "email-ingestion-service"
-  "ai-processing-service"
-  "whatsapp-messaging-service"
-  "outbound-mail-service"
-)
-
 echo "╔══════════════════════════════════════════════╗"
-echo "║        MailPulseAI AI — Build All Services       ║"
+echo "║      MailPulseAI AI — Build Monolith App     ║"
 echo "╚══════════════════════════════════════════════╝"
 echo ""
 
-for svc in "${SERVICES[@]}"; do
-  echo "▶  Building $svc..."
-  (cd "$svc" && mvn clean package -DskipTests -q)
-  echo "   ✅ $svc built"
-done
+echo "▶  Building mailpulseai-monolith..."
+(cd mailpulseai-monolith && mvn clean package -DskipTests -q)
+echo "   ✅ Monolith built"
 
 echo ""
-echo "✅  All services built. Run: docker-compose up --build -d"
+echo "✅  Build complete. Run: docker-compose up --build -d"
